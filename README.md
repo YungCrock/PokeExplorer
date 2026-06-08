@@ -6,4 +6,5 @@ https://pokeapi.co/
 
 ## Executar
 npm install
+<br>
 npm run start
