@@ -1,22 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   Image,
   ActivityIndicator,
   Button,
-} from 'react-native';
+  TouchableOpacity,
+} from "react-native";
 
-import { RouteProp, useRoute } from '@react-navigation/native';
+import { RouteProp, useRoute } from "@react-navigation/native";
 
-import { RootStackParamList } from '../navigation/AppRoutes';
-import { getPokemonDetails } from '../services/api';
-import { useFavorites } from '../context/Favorites';
+import { RootStackParamList } from "../navigation/AppRoutes";
+import { getPokemonDetails } from "../services/api";
+import { useFavorites } from "../context/Favorites";
+import { getTypeColor } from "./TypeColor";
+import { styles } from "./DetailsStyles";
 
-type RouteParams = RouteProp<
-  RootStackParamList,
-  'Details'
->;
+type RouteParams = RouteProp<RootStackParamList, "Details">;
 
 export default function Details() {
   const route = useRoute<RouteParams>();
@@ -26,11 +26,7 @@ export default function Details() {
   const [pokemon, setPokemon] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const {
-    favorites,
-    addFavorite,
-    removeFavorite,
-  } = useFavorites();
+  const { favorites, addFavorite, removeFavorite } = useFavorites();
 
   useEffect(() => {
     loadPokemon();
@@ -38,9 +34,7 @@ export default function Details() {
 
   const loadPokemon = async () => {
     try {
-      const data = await getPokemonDetails(
-        pokemonName
-      );
+      const data = await getPokemonDetails(pokemonName);
 
       setPokemon(data);
     } catch (error) {
@@ -54,70 +48,83 @@ export default function Details() {
     return <ActivityIndicator size="large" />;
   }
 
-  const isFavorite =
-    favorites.includes(pokemon.name);
+  const isFavorite = favorites.includes(pokemon.name);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: 'center',
-        padding: 20,
-      }}
-    >
-      <Text
-        style={{
-          fontSize: 24,
-          fontWeight: 'bold',
-        }}
+    <View style={styles.container}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: getTypeColor(pokemon.types[0].type.name),
+          },
+        ]}
       >
-        {pokemon.name.toUpperCase()}
-      </Text>
+        <Text style={styles.pokemonNumber}>
+          #{pokemon.id.toString().padStart(3, "0")}
+        </Text>
 
-      <Image
-        source={{
-          uri:
-            pokemon.sprites.front_default,
-        }}
-        style={{
-          width: 200,
-          height: 200,
-        }}
-      />
+        <Text style={styles.title}>
+          {pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1)}
+        </Text>
+      </View>
 
-      <Text>
-        Altura: {pokemon.height}
-      </Text>
+      <View style={styles.content}>
+        <View style={styles.imageContainer}>
+          <Image
+            source={{
+              uri: pokemon.sprites.other["official-artwork"].front_default,
+            }}
+            style={styles.image}
+          />
+        </View>
 
-      <Text>
-        Peso: {pokemon.weight}
-      </Text>
+        {/* Tipos */}
 
-      <Text>
-        Tipo:{' '}
-        {pokemon.types
-          .map(
-            (type: any) =>
-              type.type.name
-          )
-          .join(', ')}
-      </Text>
+        <View style={styles.typesContainer}>
+          {pokemon.types.map((item: any) => (
+            <View
+              key={item.type.name}
+              style={{
+                backgroundColor: getTypeColor(item.type.name),
+                paddingHorizontal: 14,
+                paddingVertical: 6,
+                borderRadius: 20,
+                marginHorizontal: 4,
+              }}
+            >
+              <Text
+                style={{
+                  color: "#FFF",
+                  fontWeight: "bold",
+                }}
+              >
+                {item.type.name}
+              </Text>
+            </View>
+          ))}
+        </View>
 
-      {isFavorite ? (
-        <Button
-          title="Remover dos Favoritos"
+        <Text style={styles.info}>Altura: {pokemon.height}</Text>
+
+        <Text style={styles.info}>Peso: {pokemon.weight}</Text>
+
+        <TouchableOpacity
+          style={[
+            styles.favoriteButton,
+            isFavorite ? styles.removeButton : styles.addButton,
+          ]}
           onPress={() =>
-            removeFavorite(pokemon.name)
+            isFavorite
+              ? removeFavorite(pokemon.name)
+              : addFavorite(pokemon.name)
           }
-        />
-      ) : (
-        <Button
-          title="Adicionar aos Favoritos"
-          onPress={() =>
-            addFavorite(pokemon.name)
-          }
-        />
-      )}
+        >
+          <Text style={styles.buttonText}>
+            {isFavorite ? "★ Remover Favorito" : "☆ Adicionar Favorito"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
