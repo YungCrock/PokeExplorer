@@ -8,3 +8,8 @@ https://pokeapi.co/
 npm install
 <br>
 npm run start
+
+## Autores
+Enzo de Aguiar odrigues
+<br>
+Lucas keiji Morikawa
